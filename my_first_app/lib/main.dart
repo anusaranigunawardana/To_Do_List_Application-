@@ -4,8 +4,20 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Map data = {
+    "title1": "First Task",
+    "title2": "Second Task",
+    "title3": "Third Task",
+    "title4": "Fourth Task",
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +33,9 @@ class MyApp extends StatelessWidget {
           child: Center(
             child: SingleChildScrollView(
               child: Column(children: [
-                card("title 1", 'asudfghkuysgrdyfuo'),
-                card("title 2", 'esituhjdio'),
-                card("title 3", 'mbsdriofx'),
-                card("title 4", 'svrnised'),
-                card("title 5", 'asudfghkuysgrdyfuo'),
-                card("title 6", 'asudfghkuysgrdyfuo'),
+                ...data.entries
+                    .map((e) => card(e.key, e.value))
+                    .toList(growable: false),
               ]),
             ),
           ),
@@ -53,7 +62,12 @@ class MyApp extends StatelessWidget {
             ],
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              // remove item
+              setState(() {
+                data.remove(title);
+              });
+            },
             icon: Icon(Icons.done),
           )
         ],
