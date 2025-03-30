@@ -8,10 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Firebase Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Task Manager',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: Colors.grey[200],
       ),
       home: TaskListApp(),
     );
@@ -24,98 +25,120 @@ class TaskListApp extends StatefulWidget {
 }
 
 class _TaskListAppState extends State<TaskListApp> {
-  Map data = {
-    "title1": "First Task",
-    "title2": "Second Task",
-    "title3": "Third Task",
-    "title4": "Fourth Task",
+  final Map<String, String> data = {
+    "First Task": "Complete UI enhancements",
+    "Second Task": "Fix task deletion issue",
+    "Third Task": "Optimize state management",
+    "Fourth Task": "Test on different devices",
   };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(136, 189, 189, 189),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(children: [
-              ...data.entries
-                  .map((e) => card(e.key, e.value))
-                  .toList(growable: false),
-            ]),
-          ),
-        ),
+      appBar: AppBar(
+        title: Text('Task Manager'),
+        centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            //  add task by dialog box
-            TextEditingController titleController = TextEditingController();
-            TextEditingController decController = TextEditingController();
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text("Add Task"),
-                    content: Column(
-                      children: [
-                        TextField(
-                          controller: titleController,
-                        ),
-                        TextField(
-                          controller: decController,
-                        ),
-                      ],
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: data.isEmpty
+            ? Center(
+                child:
+                    Text("No tasks available", style: TextStyle(fontSize: 18)))
+            : ListView.builder(
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  String title = data.keys.elementAt(index);
+                  return Dismissible(
+                    key: Key(title),
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Icon(Icons.delete, color: Colors.white),
                     ),
-                    actions: [
-                      TextButton(
+                    onDismissed: (direction) {
+                      setState(() {
+                        data.remove(title);
+                      });
+                    },
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(15),
+                        title: Text(title,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        subtitle:
+                            Text(data[title]!, style: TextStyle(fontSize: 14)),
+                        trailing: IconButton(
+                          icon: Icon(Icons.done, color: Colors.green),
                           onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text("Cancel")),
-                      TextButton(
-                          onPressed: () {
-                            data[titleController.text] = decController.text;
                             setState(() {
-                              Navigator.pop(context);
+                              data.remove(title);
                             });
                           },
-                          child: Text("Add")),
-                    ],
+                        ),
+                      ),
+                    ),
                   );
-                });
-          },
-          child: Icon(Icons.add)),
+                },
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddTaskDialog(context),
+        child: Icon(Icons.add, size: 28),
+      ),
     );
   }
 
-  Container card(String title, String dec) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      margin: EdgeInsets.all(20),
-      width: double.infinity,
-      decoration: BoxDecoration(color: Colors.blue[300]),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.start,
+  void _showAddTaskDialog(BuildContext context) {
+    TextEditingController titleController = TextEditingController();
+    TextEditingController descController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          title: Text("Add New Task"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title),
-              Text(dec),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: "Task Title"),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: descController,
+                decoration: InputDecoration(labelText: "Task Description"),
+              ),
             ],
           ),
-          IconButton(
-            onPressed: () {
-              // remove item
-              setState(() {
-                data.remove(title);
-              });
-            },
-            icon: Icon(Icons.done),
-          )
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty &&
+                    descController.text.isNotEmpty) {
+                  setState(() {
+                    data[titleController.text] = descController.text;
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Add"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
